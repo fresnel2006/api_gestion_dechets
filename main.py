@@ -3,51 +3,92 @@ from pydantic import BaseModel
 import mysql.connector
 
 app=FastAPI()
-
+#class utilisateur
 class Utilisateur(BaseModel):
     nom: str
     numero: str
     mot_de_passe: str
+#class conducteur
 class Conducteur(BaseModel):
     nom:str
     numero:str
     mot_de_passe:str 
+#verifier cnducteur
+class Verifier_conducteur(BaseModel):
+    numero:str
+    mot_de_passe:str
+#class pour verifier si le numero des utilisateurs existe
 class Numero_telephone(BaseModel):
     numero:str
+#infomation de connexion a la base de donnee
 connecter=mysql.connector.connect(
     host="localhost",
     user="root",
     password="",
     database="gestion_dechets_conducteur"
 )
-class connexion(BaseModel):
+#class de connexion a un compte existant
+class Connexion(BaseModel):
     numero:str
     mot_de_passe:str
 
+#pour affiche les donnees des uilisateurs
+class Donnee_utilisateur(BaseModel):
+    numero:str
+
+#verifier un utilisateur
 @app.post("/verifier_utilisateur")
 def verfier_utilisateur(numero_telephone:Numero_telephone):
-    sql="SELECT * FROM utilisateur where numero=%s;"
+    sql="SELECT * FROM utilisateur WHERE numero=%s;"
     conn=connecter.cursor()
     conn.execute(sql,(numero_telephone.numero,))
     resultat=conn.fetchall()
     if resultat==[]:
+        return{"statut":"echec"}
+    else:
+        return {"statut":"succes"}
+    
+
+#verifier un conducteur
+@app.post("/verifier_conducteur")
+def verifier_conducteur(verif_conducteur:Verifier_conducteur):
+    sql="SELECT * FROM conducteur WHERE numero=%s AND mot_de_passe=%s;"
+    conn=connecter.cursor()
+    conn.execute(sql,(verif_conducteur.numero,verif_conducteur.mot_de_passe))
+    resultat=conn.fetchall()
+    if resultat==[]:
         return{"existe":"false"}
     else:
-        return {"existe":"true"}
+        return {"existe":"true","resultat":resultat}
+    
+
+#ajouter un utilisateur dans la base de donnee
 @app.post("/ajouter_utilisateur")
 def ajouter_utilisateur(utilisateur:Utilisateur):
     sql="INSERT INTO utilisateur (nom,numero,mot_de_passe) VALUES(%s,%s,%s);"
     conn=connecter.cursor()
     conn.execute(sql,(utilisateur.nom,utilisateur.numero,utilisateur.mot_de_passe))
     connecter.commit()
-    return {"statut":"utilisateur ajouté"}
-@app.get("/verifier_donnee")
-def verifier_donnee():
-    sql="SELECT * FROM utilisateur where  numero='0150161468' AND mot_de_passe='fresco2.0';"
+    return {"utilisateur":"utilisateur ajouté"}
+
+
+#verifier les donnees d'un utilisateur
+@app.post("/verifier_donnee")
+def verifier_donnee(connexion:Connexion):
+    sql="SELECT * FROM utilisateur WHERE numero=%s AND mot_de_passe=%s;"
     conn=connecter.cursor()
-    conn.execute(sql)
+    conn.execute(sql,(connexion.numero,connexion.mot_de_passe))
     resultat=conn.fetchall()
     if resultat==[]:
         return{"existe":"false"}
     else:
         return {"existe":"true","resultat":resultat}
+    
+#afficher les donnees d'un utilisateur
+@app.post("/afficher_donnee_utilisateur")
+def afficher_donnee_utilisateur(donnee_utilisateur:Donnee_utilisateur):
+    conn=connecter.cursor()
+    sql="SELECT * FROM utilisateur WHERE numero=%s;"
+    conn.execute(sql,(donnee_utilisateur.numero,))
+    resultat=conn.fetchall()
+    return {"resultat":resultat}
