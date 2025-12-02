@@ -46,7 +46,7 @@ def verfier_utilisateur(numero_telephone:Numero_telephone):
     if resultat==[]:
         return{"statut":"echec"}
     else:
-        return {"statut":"succes"}
+        return {"statut":"succes","resultat":resultat}
     
 
 #verifier un conducteur
@@ -57,9 +57,9 @@ def verifier_conducteur(verif_conducteur:Verifier_conducteur):
     conn.execute(sql,(verif_conducteur.numero,verif_conducteur.mot_de_passe))
     resultat=conn.fetchall()
     if resultat==[]:
-        return{"existe":"false"}
+        return{"statut":"echec"}
     else:
-        return {"existe":"true","resultat":resultat}
+        return {"statut":"succes","resultat":resultat}
     
 
 #ajouter un utilisateur dans la base de donnee
