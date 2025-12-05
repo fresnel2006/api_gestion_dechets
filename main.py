@@ -3,23 +3,28 @@ from pydantic import BaseModel
 import mysql.connector
 
 app=FastAPI()
+
 #class utilisateur
 class Utilisateur(BaseModel):
     nom: str
     numero: str
     mot_de_passe: str
+
 #class conducteur
 class Conducteur(BaseModel):
     nom:str
     numero:str
     mot_de_passe:str 
+
 #verifier cnducteur
 class Verifier_conducteur(BaseModel):
     numero:str
     mot_de_passe:str
+
 #class pour verifier si le numero des utilisateurs existe
 class Numero_telephone(BaseModel):
     numero:str
+
 #infomation de connexion a la base de donnee
 connecter=mysql.connector.connect(
     host="localhost",
@@ -36,6 +41,16 @@ class Connexion(BaseModel):
 class Donnee_utilisateur(BaseModel):
     numero:str
 
+#pour envoyer les rapports des conducteurs
+class Rapport(BaseModel):
+    latitude:str
+    longitude:str
+    descriptions:str
+    photo:str
+
+#prendre trajet
+class Trajet(BaseModel):
+    id_trajet:str
 #verifier un utilisateur
 @app.post("/verifier_utilisateur")
 def verfier_utilisateur(numero_telephone:Numero_telephone):
@@ -90,5 +105,23 @@ def afficher_donnee_utilisateur(donnee_utilisateur:Donnee_utilisateur):
     conn=connecter.cursor()
     sql="SELECT * FROM utilisateur WHERE numero=%s;"
     conn.execute(sql,(donnee_utilisateur.numero,))
+    resultat=conn.fetchall()
+    return {"resultat":resultat}
+
+#ajouter un rapport dans la base de donnee
+@app.post("/ajouter_rapport")
+def ajouter_rapport(rapport:Rapport):
+    sql="INSERT INTO rapports (latitude,longitude,descriptions,photo) VALUES(%s,%s,%s,%s);"
+    conn=connecter.cursor()
+    conn.execute(sql,(rapport.latitude,rapport.longitude,rapport.descriptions,rapport.photo))
+    connecter.commit()
+    return {"rapport":"rapport ajouté"}
+
+#prendre un trajet
+@app.post("/prendre_trajet")
+def prendre_trajet(trajet:Trajet):
+    sql="SELECT * FROM trajet WHERE id_trajet=%s;"
+    conn=connecter.cursor()
+    conn.execute(sql,(trajet.id_trajet,))
     resultat=conn.fetchall()
     return {"resultat":resultat}
