@@ -51,6 +51,14 @@ class Rapport(BaseModel):
 #prendre trajet
 class Trajet(BaseModel):
     id_trajet:str
+
+#ajouter un rapport utilisateur
+class Rapport_utilisateur(BaseModel):
+    numero:str
+    latitude:str
+    longitude:str
+    descriptions:str
+    photo:str
 #verifier un utilisateur
 @app.post("/verifier_utilisateur")
 def verfier_utilisateur(numero_telephone:Numero_telephone):
@@ -59,9 +67,9 @@ def verfier_utilisateur(numero_telephone:Numero_telephone):
     conn.execute(sql,(numero_telephone.numero,))
     resultat=conn.fetchall()
     if resultat==[]:
-        return{"statut":"echec"}
+        return{"existe":"false"}
     else:
-        return {"statut":"succes","resultat":resultat}
+        return {"existe":"true","resultat":resultat}
     
 
 #verifier un conducteur
@@ -125,3 +133,11 @@ def prendre_trajet(trajet:Trajet):
     conn.execute(sql,(trajet.id_trajet,))
     resultat=conn.fetchall()
     return {"resultat":resultat}
+
+@app.post("/envoyer_rapport_utilisateur")
+def envoyer_rapport_utilisateur(rapport_utilisateur:Rapport_utilisateur):
+    sql="INSERT INTO rapport (numero,latitude,longitude,descriptions,photo) VALUES(%s,%s,%s,%s,%s);"
+    conn=connecter.cursor()
+    conn.execute(sql,(rapport_utilisateur.numero,rapport_utilisateur.latitude,rapport_utilisateur.longitude,rapport_utilisateur.descriptions,rapport_utilisateur.photo))
+    connecter.commit()
+    return {"rapport_utilisateur":"rapport utilisateur ajouté"}
