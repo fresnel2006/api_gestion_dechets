@@ -59,6 +59,14 @@ class Rapport_utilisateur(BaseModel):
     longitude:str
     descriptions:str
     photo:str
+    
+#modifier information utilisateur
+class Modification(BaseModel):
+    nom: str
+    numero: str
+    mot_de_passe: str
+    id_utilisateur: int
+
 #verifier un utilisateur
 @app.post("/verifier_utilisateur")
 def verfier_utilisateur(numero_telephone:Numero_telephone):
@@ -141,3 +149,19 @@ def envoyer_rapport_utilisateur(rapport_utilisateur:Rapport_utilisateur):
     conn.execute(sql,(rapport_utilisateur.numero,rapport_utilisateur.latitude,rapport_utilisateur.longitude,rapport_utilisateur.descriptions,rapport_utilisateur.photo))
     connecter.commit()
     return {"rapport_utilisateur":"rapport utilisateur ajouté"}
+
+@app.get("/afficher_rapport")
+def afficher_rapport():
+    sql="SELECT * FROM rapport;"
+    conn=connecter.cursor()
+    conn.execute(sql)
+    resultat=conn.fetchall()
+    return {"resultat":resultat}
+
+@app.post("/modifier_information")
+def modifier_information(modification:Modification):
+    sql="UPDATE utilisateur SET nom=%s,numero=%s ,mot_de_passe=%s WHERE id_utilisateur=%s;"
+    conn=connecter.cursor()
+    conn.execute(sql,(modification.nom,modification.numero,modification.mot_de_passe,modification.id_utilisateur))
+    connecter.commit()
+    return {"modification":"information modifiée"}
